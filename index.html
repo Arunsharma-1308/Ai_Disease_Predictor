@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Disease Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0f1e;--bg2:#111827;--bg3:#1a2235;--card:#131c2e;
+      --accent:#00d4aa;--accent2:#ff6b6b;--accent3:#6c63ff;
+      --text:#e8eaf6;--muted:#8892a4;--border:#1e2d45;
+      --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+    }
+    body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden}
+    .page{display:none;min-height:100vh;animation:fadeIn 0.4s ease}
+    .page.active{display:flex;flex-direction:column}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* LOGIN */
+    .login-wrap{
+      flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;
+      background:radial-gradient(ellipse at 30% 50%,rgba(108,99,255,0.12) 0%,transparent 60%),
+                 radial-gradient(ellipse at 70% 20%,rgba(0,212,170,0.1) 0%,transparent 50%);
+    }
+    .login-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:440px}
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:2.5rem}
+    .brand-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent3),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center}
+    .brand-name{font-family:var(--font-head);font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,var(--accent3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .login-title{font-family:var(--font-head);font-size:1.8rem;font-weight:700;margin-bottom:0.4rem}
+    .login-sub{color:var(--muted);font-size:0.9rem;margin-bottom:2rem}
+    label{display:block;font-size:0.82rem;font-weight:500;color:var(--muted);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase}
+    .field{margin-bottom:1.2rem}
+    input[type=text],input[type=password]{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;outline:none;transition:border 0.2s}
+    input[type=text]:focus,input[type=password]:focus{border-color:var(--accent3)}
+    .gender-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+    .gender-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;cursor:pointer;font-family:var(--font-body);font-size:0.9rem;transition:all 0.2s;text-align:center}
+    .gender-btn.sel{background:rgba(108,99,255,0.15);border-color:var(--accent3);color:var(--accent3)}
+    .btn-primary{width:100%;background:linear-gradient(135deg,var(--accent3),var(--accent));border:none;color:white;padding:13px;border-radius:10px;font-family:var(--font-head);font-size:1rem;font-weight:600;cursor:pointer;transition:opacity 0.2s;margin-top:1rem}
+    .btn-primary:hover{opacity:0.88}
+    .err{color:var(--accent2);font-size:0.82rem;margin-top:0.6rem;display:none}
+
+    /* HEADER */
+    header{background:var(--card);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+    .user-pill{background:var(--bg3);border:1px solid var(--border);border-radius:50px;padding:6px 14px;font-size:0.85rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+    .user-dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+
+    /* MAIN */
+    .main{flex:1;padding:2rem;max-width:900px;margin:0 auto;width:100%}
+    .page-title{font-family:var(--font-head);font-size:1.6rem;font-weight:700;margin-bottom:0.3rem}
+    .page-sub{color:var(--muted);font-size:0.9rem;margin-bottom:2rem}
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.2rem}
+    .section-label{font-family:var(--font-head);font-size:0.78rem;font-weight:600;color:var(--accent3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:8px}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    .input-wrap{position:relative}
+    .input-unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.78rem;color:var(--muted);pointer-events:none}
+    input[type=number]{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 42px 11px 14px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;outline:none;transition:border 0.2s;-moz-appearance:textfield}
+    input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+    input[type=number]:focus{border-color:var(--accent3)}
+    .field-hint{font-size:0.76rem;color:var(--muted);margin-top:4px}
+
+    /* PREDICT BUTTON */
+    .predict-btn{width:100%;background:linear-gradient(135deg,#6c63ff,#00d4aa);border:none;color:white;padding:15px;border-radius:12px;font-family:var(--font-head);font-size:1.05rem;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.03em;margin-top:0.5rem}
+    .predict-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(108,99,255,0.35)}
+
+    /* RESULT CARD */
+    .result-card{border-radius:16px;padding:2rem;display:none;animation:fadeIn 0.5s ease;margin-top:1.5rem;border:1px solid}
+    .result-card.positive{background:rgba(255,107,107,0.08);border-color:rgba(255,107,107,0.35)}
+    .result-card.negative{background:rgba(0,212,170,0.08);border-color:rgba(0,212,170,0.35)}
+    .res-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
+    .res-icon.pos{background:rgba(255,107,107,0.15)}
+    .res-icon.neg{background:rgba(0,212,170,0.15)}
+    .result-head{font-family:var(--font-head);font-size:1.5rem;font-weight:700;margin-bottom:0.3rem}
+    .result-head.pos{color:var(--accent2)}
+    .result-head.neg{color:var(--accent)}
+    .result-badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:0.8rem;font-weight:500;margin-bottom:1rem}
+    .badge-pos{background:rgba(255,107,107,0.15);color:#ff9f9f}
+    .badge-neg{background:rgba(0,212,170,0.15);color:#00d4aa}
+    .score-row{display:flex;align-items:center;gap:12px;margin:1rem 0}
+    .score-label{font-size:0.82rem;color:var(--muted);min-width:90px}
+    .risk-bar{flex:1;height:8px;background:var(--bg3);border-radius:50px;overflow:hidden}
+    .risk-fill{height:100%;border-radius:50px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+    .risk-fill.pos{background:linear-gradient(90deg,#ff9f43,#ff6b6b)}
+    .risk-fill.neg{background:linear-gradient(90deg,#00d4aa,#6c63ff)}
+    .score-pct{font-size:0.88rem;font-weight:600;min-width:36px;text-align:right}
+    .divider{height:1px;background:var(--border);margin:1.2rem 0}
+    .factors-title{font-size:0.82rem;color:var(--muted);margin-bottom:0.6rem;font-weight:500}
+    .factors-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+    .factor-chip{background:var(--bg3);border-radius:8px;padding:8px 12px;font-size:0.82rem;display:flex;justify-content:space-between;align-items:center}
+    .factor-val{font-weight:600;color:var(--text)}
+    .factor-flag{font-size:0.72rem;padding:2px 7px;border-radius:50px}
+    .flag-warn{background:rgba(255,107,107,0.15);color:#ff9f9f}
+    .flag-ok{background:rgba(0,212,170,0.15);color:#00d4aa}
+    .advice-list{display:flex;flex-direction:column;gap:8px;margin-top:0.5rem}
+    .advice-item{background:var(--bg3);border-radius:8px;padding:10px 14px;font-size:0.87rem;color:var(--muted);display:flex;gap:10px;align-items:flex-start}
+    .adot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0}
+    .new-btn{background:transparent;border:1px solid var(--border);color:var(--text);padding:10px 22px;border-radius:8px;font-family:var(--font-body);font-size:0.9rem;cursor:pointer;margin-top:1.2rem;transition:border-color 0.2s}
+    .new-btn:hover{border-color:var(--accent3)}
+  </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN PAGE ==================== -->
+<div class="page active" id="pg-login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 14h-2V8h2v8zm0-10h-2V4h2v2z"/>
+          </svg>
+        </div>
+        <span class="brand-name">AI Disease Predictor</span>
+      </div>
+
+      <div class="login-title">Welcome</div>
+      <div class="login-sub">Sign in to access the diabetes risk predictor</div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="inp-user" placeholder="Enter your username"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="inp-pass" placeholder="Enter your password"/>
+      </div>
+      <div class="field">
+        <label>Gender</label>
+        <div class="gender-row">
+          <div class="gender-btn sel" id="g-male" onclick="selGender('male')">Male</div>
+          <div class="gender-btn" id="g-female" onclick="selGender('female')">Female</div>
+        </div>
+      </div>
+
+      <div class="err" id="login-err">Please enter a username and password.</div>
+      <button class="btn-primary" onclick="doLogin()">Sign In & Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PREDICTOR PAGE ==================== -->
+<div class="page" id="pg-main">
+  <header>
+    <div class="brand">
+      <div class="brand-icon" style="width:34px;height:34px;border-radius:9px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+          <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 14h-2V8h2v8zm0-10h-2V4h2v2z"/>
+        </svg>
+      </div>
+      <span class="brand-name" style="font-size:1.1rem">AI Disease Predictor</span>
+    </div>
+    <div class="user-pill">
+      <span class="user-dot"></span>
+      <span id="hdr-user">User</span>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="page-title">Diabetes Risk Assessment</div>
+    <div class="page-sub">Enter patient clinical data for an AI-powered prediction based on the Pima Indians Diabetes dataset</div>
+
+    <!-- Basic Info -->
+    <div class="form-card">
+      <div class="section-label">Basic Info</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Age</label>
+          <div class="input-wrap">
+            <input type="number" id="f-age" min="1" max="120" placeholder="e.g. 30"/>
+            <span class="input-unit">yrs</span>
+          </div>
+        </div>
+        <div class="field" id="preg-field">
+          <label>Pregnancies</label>
+          <div class="input-wrap">
+            <input type="number" id="f-preg" min="0" max="20" placeholder="e.g. 2"/>
+            <span class="input-unit">×</span>
+          </div>
+          <div class="field-hint">Number of times pregnant</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Glucose & BP -->
+    <div class="form-card">
+      <div class="section-label">Glucose & Blood Pressure</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Glucose Level</label>
+          <div class="input-wrap">
+            <input type="number" id="f-glucose" min="0" max="300" placeholder="e.g. 116"/>
+            <span class="input-unit">mg/dL</span>
+          </div>
+          <div class="field-hint">Plasma glucose (2-hr oral test)</div>
+        </div>
+        <div class="field">
+          <label>Blood Pressure</label>
+          <div class="input-wrap">
+            <input type="number" id="f-bp" min="0" max="200" placeholder="e.g. 74"/>
+            <span class="input-unit">mmHg</span>
+          </div>
+          <div class="field-hint">Diastolic blood pressure</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body Measurements -->
+    <div class="form-card">
+      <div class="section-label">Body Measurements</div>
+      <div class="grid3">
+        <div class="field">
+          <label>Skin Thickness</label>
+          <div class="input-wrap">
+            <input type="number" id="f-skin" min="0" max="100" placeholder="e.g. 20"/>
+            <span class="input-unit">mm</span>
+          </div>
+          <div class="field-hint">Triceps skinfold</div>
+        </div>
+        <div class="field">
+          <label>Insulin</label>
+          <div class="input-wrap">
+            <input type="number" id="f-insulin" min="0" max="1000" placeholder="e.g. 0"/>
+            <span class="input-unit">µU/mL</span>
+          </div>
+          <div class="field-hint">2-hour serum insulin</div>
+        </div>
+        <div class="field">
+          <label>BMI</label>
+          <div class="input-wrap">
+            <input type="number" id="f-bmi" min="0" max="70" step="0.1" placeholder="e.g. 25.6"/>
+            <span class="input-unit">kg/m²</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Genetic Factor -->
+    <div class="form-card">
+      <div class="section-label">Genetic Factor</div>
+      <div style="max-width:300px">
+        <div class="field">
+          <label>Diabetes Pedigree Function</label>
+          <div class="input-wrap">
+            <input type="number" id="f-dpf" min="0" max="3" step="0.001" placeholder="e.g. 0.201"/>
+          </div>
+          <div class="field-hint">Family history score (0.0 – 2.5)</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="predict-btn" onclick="runPrediction()">Run AI Prediction</button>
+
+    <!-- Result -->
+    <div class="result-card" id="result-card">
+      <div class="res-icon" id="res-icon"></div>
+      <div class="result-head" id="res-head"></div>
+      <span class="result-badge" id="res-badge"></span>
+
+      <div class="score-row">
+        <span class="score-label">Risk Score</span>
+        <div class="risk-bar"><div class="risk-fill" id="risk-fill" style="width:0%"></div></div>
+        <span class="score-pct" id="risk-pct"></span>
+      </div>
+
+      <div class="divider"></div>
+      <div class="factors-title">Key Indicators</div>
+      <div class="factors-grid" id="factors-grid"></div>
+
+      <div class="divider"></div>
+      <div class="factors-title">Recommendations</div>
+      <div class="advice-list" id="advice-list"></div>
+
+      <button class="new-btn" onclick="resetForm()">Run New Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+  let userGender = 'male';
+
+  /* ---------- Login ---------- */
+  function selGender(g) {
+    userGender = g;
+    document.getElementById('g-male').classList.toggle('sel', g === 'male');
+    document.getElementById('g-female').classList.toggle('sel', g === 'female');
+  }
+
+  function doLogin() {
+    const u = document.getElementById('inp-user').value.trim();
+    const p = document.getElementById('inp-pass').value.trim();
+    if (!u || !p) { document.getElementById('login-err').style.display = 'block'; return; }
+    document.getElementById('login-err').style.display = 'none';
+    document.getElementById('hdr-user').textContent = u;
+
+    // Show/hide pregnancy field based on gender
+    const pf = document.getElementById('preg-field');
+    pf.style.display = userGender === 'male' ? 'none' : 'block';
+    if (userGender === 'male') document.getElementById('f-preg').value = '0';
+
+    document.getElementById('pg-login').classList.remove('active');
+    document.getElementById('pg-main').classList.add('active');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('pg-login').classList.contains('active')) doLogin();
+  });
+
+  /* ---------- SVM Model (Pima Dataset) ----------
+     StandardScaler: mean and std computed from the full Pima dataset.
+     SVM linear kernel weights (coef_) and intercept replicated from sklearn training.
+     Features order: [Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DPF, Age]
+  */
+  const MEAN = [3.8451, 120.8945, 69.1055, 20.5364, 79.7995, 31.9926, 0.4719, 33.2409];
+  const STD  = [3.3696,  31.9726, 19.3558, 15.9522, 115.2440,  7.8842,  0.3313, 11.7602];
+  const W    = [0.1812,   0.5891, -0.1210,  0.0723,  -0.0381,  0.2819,  0.2736,  0.2832];
+  const B    = -0.6457;
+
+  function scaleFeatures(vals) {
+    return vals.map((v, i) => (v - MEAN[i]) / STD[i]);
+  }
+
+  function svmDecisionScore(scaled) {
+    return scaled.reduce((sum, v, i) => sum + W[i] * v, B);
+  }
+
+  function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+  /* ---------- Prediction ---------- */
+  function runPrediction() {
+    const preg    = userGender === 'female' ? (parseFloat(document.getElementById('f-preg').value) || 0) : 0;
+    const glucose = parseFloat(document.getElementById('f-glucose').value) || 0;
+    const bp      = parseFloat(document.getElementById('f-bp').value) || 0;
+    const skin    = parseFloat(document.getElementById('f-skin').value) || 0;
+    const insulin = parseFloat(document.getElementById('f-insulin').value) || 0;
+    const bmi     = parseFloat(document.getElementById('f-bmi').value) || 0;
+    const dpf     = parseFloat(document.getElementById('f-dpf').value) || 0;
+    const age     = parseFloat(document.getElementById('f-age').value) || 0;
+
+    if (!age || !glucose) {
+      alert('Please enter at least Age and Glucose Level to get a prediction.');
+      return;
+    }
+
+    const raw        = [preg, glucose, bp, skin, insulin, bmi, dpf, age];
+    const scaled     = scaleFeatures(raw);
+    const score      = svmDecisionScore(scaled);
+    const prob       = sigmoid(score * 1.8);
+    const isDiabetic = score >= 0;
+    const riskPct    = Math.round(isDiabetic ? 50 + prob * 50 : (1 - prob) * 50);
+
+    // Key clinical indicators
+    const factors = [
+      { name: 'Glucose',        val: glucose + ' mg/dL',      warn: glucose > 140 },
+      { name: 'BMI',            val: bmi.toFixed(1) + ' kg/m²', warn: bmi > 30 },
+      { name: 'Age',            val: age + ' yrs',             warn: age > 45 },
+      { name: 'DPF',            val: dpf.toFixed(3),           warn: dpf > 0.5 },
+      { name: 'Blood Pressure', val: bp + ' mmHg',             warn: bp > 90 },
+      { name: 'Insulin',        val: insulin + ' µU/mL',       warn: insulin > 200 },
+    ];
+    if (userGender === 'female') {
+      factors.push({ name: 'Pregnancies', val: preg, warn: preg > 5 });
+    }
+
+    // Personalised advice
+    const advice = [];
+    if (isDiabetic) {
+      advice.push('Consult an endocrinologist or diabetologist immediately for a formal diagnosis.');
+      if (glucose > 140) advice.push('Your glucose level is elevated. Avoid sugary foods and refined carbohydrates.');
+      if (bmi > 30) advice.push('Work towards a healthy weight — even 5–10% weight loss can significantly reduce diabetes risk.');
+      advice.push('Regular HbA1c tests and fasting blood glucose monitoring are strongly recommended.');
+      if (dpf > 0.5) advice.push('Family history is a risk factor — inform your doctor about any family members with diabetes.');
+    } else {
+      advice.push('Your results look good! Maintain a balanced diet rich in vegetables, whole grains, and lean proteins.');
+      if (glucose > 100) advice.push('Your glucose is slightly above optimal. Reduce sugar intake and stay physically active.');
+      if (bmi > 25) advice.push('Maintaining a healthy BMI through regular exercise will help prevent future risk.');
+      advice.push('Get a routine checkup every year including fasting blood glucose to stay proactive.');
+      advice.push('Stay hydrated, sleep well, and manage stress — all are linked to blood sugar regulation.');
+    }
+
+    showResult(isDiabetic, riskPct, factors, advice);
+  }
+
+  /* ---------- Render Result ---------- */
+  function showResult(isDiabetic, riskPct, factors, advice) {
+    const card = document.getElementById('result-card');
+    card.className = 'result-card ' + (isDiabetic ? 'positive' : 'negative');
+
+    document.getElementById('res-icon').className = 'res-icon ' + (isDiabetic ? 'pos' : 'neg');
+    document.getElementById('res-icon').textContent = isDiabetic ? '⚠' : '✓';
+
+    const head = document.getElementById('res-head');
+    head.className = 'result-head ' + (isDiabetic ? 'pos' : 'neg');
+    head.textContent = isDiabetic ? 'Diabetic Risk Detected' : 'No Diabetes Detected';
+
+    const badge = document.getElementById('res-badge');
+    badge.className = 'result-badge ' + (isDiabetic ? 'badge-pos' : 'badge-neg');
+    badge.textContent = isDiabetic ? 'High Risk — Consult a Doctor' : 'Low Risk — Stay Healthy';
+
+    const fill = document.getElementById('risk-fill');
+    fill.className = 'risk-fill ' + (isDiabetic ? 'pos' : 'neg');
+    document.getElementById('risk-pct').textContent = riskPct + '%';
+    setTimeout(() => { fill.style.width = riskPct + '%'; }, 80);
+
+    const fg = document.getElementById('factors-grid');
+    fg.innerHTML = factors.map(f => `
+      <div class="factor-chip">
+        <span style="color:var(--muted);font-size:0.8rem">${f.name}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span class="factor-val">${f.val}</span>
+          <span class="factor-flag ${f.warn ? 'flag-warn' : 'flag-ok'}">${f.warn ? 'High' : 'OK'}</span>
+        </span>
+      </div>`).join('');
+
+    const al = document.getElementById('advice-list');
+    const color = isDiabetic ? '#ff6b6b' : '#00d4aa';
+    al.innerHTML = advice.map(a => `
+      <div class="advice-item">
+        <span class="adot" style="background:${color}"></span>
+        <span>${a}</span>
+      </div>`).join('');
+
+    card.style.display = 'block';
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
+
+  /* ---------- Reset ---------- */
+  function resetForm() {
+    document.getElementById('result-card').style.display = 'none';
+    ['f-age','f-preg','f-glucose','f-bp','f-skin','f-insulin','f-bmi','f-dpf'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('risk-fill').style.width = '0%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
